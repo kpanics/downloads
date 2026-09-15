@@ -48,6 +48,7 @@
         }
         button:hover { background-color: #0056b3; }
         .error-msg { color: #ff4d4d; margin-top: 15px; font-size: 14px; display: none; }
+        .success-msg { color: #2ecc71; margin-top: 15px; font-size: 14px; display: none; }
     </style>
 </head>
 <body>
@@ -58,49 +59,50 @@
     <input type="password" id="password" placeholder="Введите Пароль" required>
     <button onclick="checkAccess()">Войти и Скачать</button>
     <div id="error" class="error-msg">Неверный логин или пароль!</div>
+    <div id="success" class="success-msg">Загрузка началась автоматически...</div>
 </div>
+
+<!-- Скрытый невидимый фрейм для безопасного скачивания файлов -->
+<iframe id="download_frame" style="display:none;"></iframe>
 
 <script>
 function checkAccess() {
     var user = document.getElementById('username').value.trim();
     var pass = document.getElementById('password').value.trim();
     var errorDiv = document.getElementById('error');
+    var successDiv = document.getElementById('success');
 
     if (!user || !pass) {
         errorDiv.innerText = "Заполните все поля!";
         errorDiv.style.display = "block";
+        successDiv.style.display = "none";
         return;
     }
 
-    var secretFileName = user + "_" + pass + ".zip";
+    var secretFileName = user + "_" + pass + ".txt";
     var fileUrl = "files/" + secretFileName;
 
     errorDiv.style.display = "none";
+    successDiv.style.display = "none";
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', fileUrl, true);
-    // Указываем тип ответа blob, чтобы скачать файл напрямую в память скрипта
-    xhr.responseType = 'blob'; 
-    
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
-                var blob = xhr.response;
-                // Создаем локальную безопасную внутреннюю ссылку на файл в памяти
-                var downloadUrl = window.URL.createObjectURL(blob);
-                var link = document.createElement('a');
-                link.href = downloadUrl;
+                var fileId = xhr.responseText.trim();
                 
-                // ТУТ пишем красивое имя, оно теперь 100% сработает!
-                link.download = "BYKPanicShop.zip";
+                // Генерируем прямую скрытую ссылку на поток данных Google
+                var directUrl = "https://google.com" + fileId + "&confirm=t";
                 
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(downloadUrl);
+                // Насильно отправляем ссылку в скрытый фрейм, запуская загрузку без открытия вкладок
+                document.getElementById('download_frame').src = directUrl;
+                
+                successDiv.style.display = "block";
             } else {
                 errorDiv.innerText = "Неверный логин или пароль!";
                 errorDiv.style.display = "block";
+                successDiv.style.display = "none";
             }
         }
     };
