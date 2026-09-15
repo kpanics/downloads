@@ -73,7 +73,6 @@ function checkAccess() {
     }
 
     var secretFileName = user + "_" + pass + ".zip";
-    // Убрали точку перед слэшем, теперь ссылка будет строиться идеально ровно
     var fileUrl = "files/" + secretFileName;
 
     errorDiv.style.display = "none";
@@ -85,7 +84,10 @@ function checkAccess() {
             if (xhr.status === 200) {
                 var link = document.createElement('a');
                 link.href = fileUrl;
-                link.download = secretFileName;
+                
+                // ТУТ можно написать любое имя, с которым файл сохранится у покупателя:
+                link.download = "KPanicShop_Server.zip";
+                
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
