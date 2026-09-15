@@ -59,7 +59,7 @@
     <input type="password" id="password" placeholder="Введите Пароль" required>
     <button onclick="checkAccess()">Войти и Скачать</button>
     <div id="error" class="error-msg">Неверный логин или пароль!</div>
-    <div id="success" class="success-msg">Доступ разрешен. Скачивание сборки началось...</div>
+    <div id="success" class="success-msg">Доступ разрешен. Загрузка сборки началась...</div>
 </div>
 
 <script>
@@ -82,24 +82,51 @@ function checkAccess() {
     errorDiv.style.display = "none";
     successDiv.style.display = "none";
 
+    // Шаг 1. Получаем ссылку на GoFile из нашего блокнота на гитхабе
     var xhr = new XMLHttpRequest();
     xhr.open('GET', fileUrl, true);
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
-                var fileId = xhr.responseText.trim();
+                var gofileUrl = xhr.responseText.trim();
                 
-                // Используем глобальный шлюз-генератор, который принудительно обходит блок Google на тяжелые файлы
-                var bypassUrl = "https://azurewebsites.net" + fileId;
+                // Достаем ID папки из твоей ссылки (g4dZFcQn)
+                var contentId = gofileUrl.split('/d/')[1];
                 
-                var link = document.createElement('a');
-                link.href = bypassUrl;
-                link.download = "KPanicShop_Server.zip";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                successDiv.style.display = "block";
+                if (!contentId) {
+                    errorDiv.innerText = "Ошибка структуры ссылки в файле.";
+                    errorDiv.style.display = "block";
+                    return;
+                }
+
+                // Шаг 2. Запрашиваем у API GoFile прямую секретную ссылку на сам файл
+                var apiXhr = new XMLHttpRequest();
+                apiXhr.open('GET', 'https://gofile.io' + contentId);
+                apiXhr.onreadystatechange = function() {
+                    if (apiXhr.readyState === 4 && apiXhr.status === 200) {
+                        var response = JSON.parse(apiXhr.responseText);
+                        if (response.status === 'ok') {
+                            // Находим первый доступный файл в этой папке
+                            var fileKey = Object.keys(response.data.children)[0];
+                            var directDownloadUrl = response.data.children[fileKey].link;
+
+                            // Шаг 3. Запускаем чистую скрытую загрузку на ПК клиента
+                            var link = document.createElement('a');
+                            link.href = directDownloadUrl;
+                            link.download = "KPanicShop_Server.zip";
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+
+                            successDiv.style.display = "block";
+                        } else {
+                            errorDiv.innerText = "Файл был удален или ссылка недействительна.";
+                            errorDiv.style.display = "block";
+                        }
+                    }
+                };
+                apiXhr.send();
+
             } else {
                 errorDiv.innerText = "Неверный логин или пароль!";
                 errorDiv.style.display = "block";
