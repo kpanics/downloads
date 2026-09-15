@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPanicShop | Центр Загрузок</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-box {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+        h2 { margin-bottom: 20px; font-size: 20px; color: #fff; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: #5a5a5a; outline: none; }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #0056b3; }
+        .error-msg { color: #ff4d4d; margin-top: 15px; font-size: 14px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <h2>✨ KPanicShop Downloads</h2>
+    <input type="text" id="username" placeholder="Введите Логин" required>
+    <input type="password" id="password" placeholder="Введите Пароль" required>
+    <button onclick="checkAccess()">Войти и Скачать</button>
+    <div id="error" class="error-msg">Неверный логин или пароль!</div>
+</div>
+
+<script>
+function checkAccess() {
+    var user = document.getElementById('username').value.trim();
+    var pass = document.getElementById('password').value.trim();
+    var errorDiv = document.getElementById('error');
+
+    if (!user || !pass) {
+        errorDiv.innerText = "Заполните все поля!";
+        errorDiv.style.display = "block";
+        return;
+    }
+
+    var secretFileName = user + "_" + pass + ".zip";
+    var fileUrl = "./files/" + secretFileName;
+
+    errorDiv.style.display = "none";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('HEAD', fileUrl, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                var link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = secretFileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                errorDiv.innerText = "Неверный логин или пароль!";
+                errorDiv.style.display = "block";
+            }
+        }
+    };
+    xhr.send();
+}
+</script>
+
+</body>
+</html>
