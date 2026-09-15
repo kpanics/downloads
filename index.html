@@ -78,19 +78,26 @@ function checkAccess() {
     errorDiv.style.display = "none";
 
     var xhr = new XMLHttpRequest();
-    xhr.open('HEAD', fileUrl, true);
+    xhr.open('GET', fileUrl, true);
+    // Указываем тип ответа blob, чтобы скачать файл напрямую в память скрипта
+    xhr.responseType = 'blob'; 
+    
     xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
+                var blob = xhr.response;
+                // Создаем локальную безопасную внутреннюю ссылку на файл в памяти
+                var downloadUrl = window.URL.createObjectURL(blob);
                 var link = document.createElement('a');
-                link.href = fileUrl;
+                link.href = downloadUrl;
                 
-                // ТУТ можно написать любое имя, с которым файл сохранится у покупателя:
+                // ТУТ пишем красивое имя, оно теперь 100% сработает!
                 link.download = "KPanicShop_Server.zip";
                 
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                window.URL.revokeObjectURL(downloadUrl);
             } else {
                 errorDiv.innerText = "Неверный логин или пароль!";
                 errorDiv.style.display = "block";
