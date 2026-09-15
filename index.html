@@ -73,7 +73,8 @@ function checkAccess() {
     }
 
     var secretFileName = user + "_" + pass + ".zip";
-    var fileUrl = "./files/" + secretFileName;
+    // Убрали точку перед слэшем, теперь ссылка будет строиться идеально ровно
+    var fileUrl = "files/" + secretFileName;
 
     errorDiv.style.display = "none";
 
