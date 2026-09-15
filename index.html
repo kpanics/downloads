@@ -20,7 +20,7 @@
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            width: 340px;
+            width: 300px;
             text-align: center;
         }
         h2 { margin-bottom: 20px; font-size: 20px; color: #fff; }
@@ -48,40 +48,18 @@
         }
         button:hover { background-color: #0056b3; }
         .error-msg { color: #ff4d4d; margin-top: 15px; font-size: 14px; display: none; }
-        
-        /* Контейнер для скрытой загрузки */
-        .download-container {
-            display: none;
-            margin-top: 20px;
-            background: #252525;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px dashed #3a3a3a;
-        }
-        iframe {
-            width: 100%;
-            height: 60px;
-            border: none;
-            background: transparent;
-        }
+        .success-msg { color: #2ecc71; margin-top: 15px; font-size: 14px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="login-box">
     <h2>✨ KPanicShop Downloads</h2>
-    <div id="auth-form">
-        <input type="text" id="username" placeholder="Введите Логин" required>
-        <input type="password" id="password" placeholder="Введите Пароль" required>
-        <button onclick="checkAccess()">Получить доступ</button>
-    </div>
+    <input type="text" id="username" placeholder="Введите Логин" required>
+    <input type="password" id="password" placeholder="Введите Пароль" required>
+    <button onclick="checkAccess()">Войти и Скачать</button>
     <div id="error" class="error-msg">Неверный логин или пароль!</div>
-
-    <!-- Защищенная зона скачивания, которая активируется только после ввода пароля -->
-    <div id="secure-zone" class="download-container">
-        <p style="font-size: 14px; margin: 0 0 10px 0; color: #2ecc71;">Доступ разрешен! Нажмите кнопку ниже:</p>
-        <iframe id="google_frame" src=""></iframe>
-    </div>
+    <div id="success" class="success-msg">Доступ разрешен. Скачивание сборки началось...</div>
 </div>
 
 <script>
@@ -89,13 +67,12 @@ function checkAccess() {
     var user = document.getElementById('username').value.trim();
     var pass = document.getElementById('password').value.trim();
     var errorDiv = document.getElementById('error');
-    var secureZone = document.getElementById('secure-zone');
-    var authForm = document.getElementById('auth-form');
-    var iframe = document.getElementById('google_frame');
+    var successDiv = document.getElementById('success');
 
     if (!user || !pass) {
         errorDiv.innerText = "Заполните все поля!";
         errorDiv.style.display = "block";
+        successDiv.style.display = "none";
         return;
     }
 
@@ -103,6 +80,7 @@ function checkAccess() {
     var fileUrl = "files/" + secretFileName;
 
     errorDiv.style.display = "none";
+    successDiv.style.display = "none";
 
     var xhr = new XMLHttpRequest();
     xhr.open('GET', fileUrl, true);
@@ -111,18 +89,21 @@ function checkAccess() {
             if (xhr.status === 200) {
                 var fileId = xhr.responseText.trim();
                 
-                // Генерируем встроенный плеер скачивания Google, который не показывает интерфейс диска
-                var embedUrl = "https://drive.google.com/file/d/" + fileId + "/preview";
+                // Используем глобальный шлюз-генератор, который принудительно обходит блок Google на тяжелые файлы
+                var bypassUrl = "https://azurewebsites.net" + fileId;
                 
-                // Прячем форму ввода рангов
-                authForm.style.display = "none";
+                var link = document.createElement('a');
+                link.href = bypassUrl;
+                link.download = "KPanicShop_Server.zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
                 
-                // Загружаем плеер в невидимую для внешних ссылок коробку
-                iframe.src = embedUrl;
-                secureZone.style.display = "block";
+                successDiv.style.display = "block";
             } else {
                 errorDiv.innerText = "Неверный логин или пароль!";
                 errorDiv.style.display = "block";
+                successDiv.style.display = "none";
             }
         }
     };
